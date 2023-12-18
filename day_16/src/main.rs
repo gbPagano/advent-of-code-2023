@@ -41,8 +41,6 @@ fn part_two(contents: String) {
     let mut res = 0;
     for i in 0..grid.len() {
         for dir in [
-            Direction::Up,
-            Direction::Down,
             Direction::Left,
             Direction::Right,
         ] {
@@ -54,8 +52,6 @@ fn part_two(contents: String) {
         for dir in [
             Direction::Up,
             Direction::Down,
-            Direction::Left,
-            Direction::Right,
         ] {
             res = res.max(energize_beam(&grid, (0, j, dir)));
             res = res.max(energize_beam(&grid, (grid[0].len() - 1, j, dir)));
