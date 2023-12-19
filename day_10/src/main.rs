@@ -78,7 +78,7 @@ fn part_two(contents: String) {
     for (i, line) in grid.iter().enumerate() {
         // println!("{:?}", line);
         for (j, tile) in line.iter().enumerate() {
-            if tile == &'.' && it_is_outside(&grid, (i, j)) {
+            if tile == &'.' && it_is_inside(&grid, (i, j)) {
                 res += 1;
             }
         }
@@ -87,7 +87,7 @@ fn part_two(contents: String) {
     println!("res: {}", res);
 }
 
-fn it_is_outside(grid: &Vec<Vec<char>>, current_pos: (usize, usize)) -> bool {
+fn it_is_inside(grid: &Vec<Vec<char>>, current_pos: (usize, usize)) -> bool {
     let (i, j) = current_pos;
     let mut counts = 0;
     for k in j..grid[i].len() {
