@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::Read;
 
 fn main() {
-    let mut file = File::open("test_62.txt").unwrap();
+    let mut file = File::open("input.txt").unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
 
@@ -100,96 +100,42 @@ fn part_one(contents: String) {
 }
 
 fn part_two(contents: String) {
-    
     let mut instructions = contents
         .split('\n')
         .map(|line| line.split_whitespace().collect::<Vec<_>>())
         .map(|vec| vec[2].trim_matches(|char| ['(', ')', '#'].contains(&char)))
         .map(|item| (
             Direction::from_ch(item.chars().nth(5).unwrap()).unwrap(), 
-            usize::from_str_radix(&item[..5], 16).unwrap()
+            isize::from_str_radix(&item[..5], 16).unwrap()
         ))
         .collect::<Vec<_>>();
 
 
-    let first = instructions[0].0;
-    let last = instructions[instructions.len() - 1].0;
-    instructions.push(instructions[0]);
+    let mut i: isize = 0;
+    let mut j: isize = 0;
+    let mut b: usize = 0;
+    let points = instructions
+        .iter()
+        .map(|(dir, val)| {
+            let (di, dj) = dir.to_tuple();
+            i += val * di;
+            j += val * dj;
+            b += *val as usize;
+            (i, j)
+        })
+        .collect::<Vec<_>>();
 
-    let mut terrain: Vec<Vec<char>> = vec![vec![compare_dirs(last, first)]];
+    let area = points
+        .iter()
+        .enumerate()
+        .fold(0, |acc, (i, point_i)| {
+            let j = (i + 1) % points.len();
+            let point_j = &points[j];
+            acc + (point_i.0 * point_j.1 - point_j.0 * point_i.1)
+        })
+        .abs() as usize / 2;
 
-    let mut i = 0;
-    let mut j = 0;
-    for (dir, val, chars) in transform_instructions(instructions) {
-        match dir {
-            Direction::Right => {
-                let k = j + val;
-                let mut char_idx = 0;
-                while j < k {
-                    if j + 1 >= terrain[0].len() {
-                        add_column(&mut terrain, true);
-                    }
-                    j += 1;
-                    terrain[i][j] = chars[char_idx];
-                    
-                    char_idx += 1;
-                }
-            },
-            Direction::Down => {
-                let k = i + val;
-                let mut char_idx = 0;
-                while i < k {
-                    if i + 1 >= terrain.len() {
-                        add_line(&mut terrain, true);
-                    }
-                    i += 1;
-                    terrain[i][j] = chars[char_idx];
-                    
-                    char_idx += 1;
-                }
-            },
-            Direction::Left => {
-                let mut char_idx = 0;
-                if val > j {
-                    for _ in 0..val-j {
-                        add_column(&mut terrain, false);
-                    }
-                    j += val - j;
-                }
-                for _ in 0..val {
-                    j -= 1;
-                    terrain[i][j] = chars[char_idx];
-
-                    char_idx += 1;
-                }
-
-            },
-            Direction::Up => {
-                let mut char_idx = 0;
-                if val > i {
-                    for _ in 0..val-i {
-                        add_line(&mut terrain, false);
-                    }
-                    i += val - i;
-                } 
-                for _ in 0..val {
-                    i -= 1;
-                    terrain[i][j] = chars[char_idx];
-
-                    char_idx += 1;
-                }
-
-            },
-        }
-    }
-    
-    // fill_terrain(&mut terrain);
-    let res: usize = terrain.iter().flat_map(|c| c).filter(|c| *c != &'.').count();
-    
-    for line in &terrain {
-        println!("{:?}", line.iter().collect::<String>());
-    }
-
+    let res = (area - (b / 2) + 1) + b;
     println!("res: {:?}", res);
 }
 
@@ -306,6 +252,15 @@ impl Direction {
         match self {
             Direction::Down | Direction::Up => '|',
             Direction::Left | Direction::Right => '-',
+        }
+    }
+
+    fn to_tuple(&self) -> (isize, isize) {
+        match self {
+            Direction::Down => (1, 0),
+            Direction::Left => (0, -1),
+            Direction::Right => (0, 1),
+            Direction::Up => (-1, 0),
         }
     }
 }
